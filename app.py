@@ -12,16 +12,21 @@ import pickle
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from PIL import Image
-
+import matplotlib.pyplot as plt
+from IPython import get_ipython
+import numpy as np
+# get_ipython().magic(u'matplotlib inline')
 
 def main():
     
     halaman = st.sidebar.selectbox("MENU", ["Tentang", "Data Preprocessing","Simulasi Word2vec","Prediksi Kalimat","Hasil Training"])
 
+    def load_css(css_file):
+        with open(css_file) as f:
+            st.markdown('<style>{}</style>'.format(f.read()),unsafe_allow_html=True)
+    load_css("gaya.css")
+
     if halaman == "Tentang":
-        def load_css(css_file):
-            with open(css_file) as f:
-                st.markdown('<style>{}</style>'.format(f.read()),unsafe_allow_html=True)
         def loadpage():
             st.markdown('''
             <h1 style="margin-bottom:0px">Analisis Sentimen Media Sosial Twitter Terhadap Layanan Provider Telekomunikasi Menggunakan Metode Long Short Term Memory</h1>
@@ -37,7 +42,7 @@ def main():
                 <div id='container'>
                     <div id="conten">
                         <h1 class="nama">Fauzi Faruq Nabbani</h1>
-                        <p class="biodata">Nama Panggilan : Fauzi<br>NPM : 140810160007<br>JK : Laki-laki<br>TTL : Tasikmalaya, 20 September 1997<br>Agama : Islam<br></p>
+                        <p class="biodata">Nama Panggilan : Fauzi<br>Perguruan Tinggi : Universitas Padjadjaran<br>Program Studi : Teknik Informatika<br>NPM : 140810160007<br>JK : Laki-laki<br>TTL : Tasikmalaya, 20 September 1997<br>Agama : Islam<br></p>
                     </div>
                 </div>
                 <div>
@@ -53,40 +58,67 @@ def main():
                     </div>
                 </div>              
             ''',unsafe_allow_html=True)
-        load_css("gaya.css")
         loadpage() 
         
     elif halaman == "Data Preprocessing":
         st.markdown(
         """
-        <h1>Data Preprocessing</h1>
+        <h1 class="title">Data Preprocessing</h1>
         """, unsafe_allow_html=True)
         st.text("Lorem Ipsum is simply dummy text of the printing and typesetting industry. \nLorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.\nIt has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.\nIt was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.")
-        
-        def pilih_file(folder_path='./datamentah'):
-            namafile = os.listdir(folder_path)
-            fileterpilih = st.selectbox('Pilih Data set',namafile)
-            return os.path.join(folder_path, fileterpilih)
-        data = pilih_file()
-        st.write('You selected `%s`' % data)
-
-        dataTweet = pd.read_csv(data,usecols=["text","sentiment"], encoding = "latin-1")
         st.markdown(
         """
-        <h2>Data Awal</h2>
+        <h2 class="title">Informasi Tentang Data</h2>
+        <ul>
+            <li>Sumber Data berasal dari Sosial Media Twitter Komentar Masyrakat terhadap akun @Telkomsel</li>
+            <li>Data yang dikumpul yaitu dari Bulan Januari - Februari, dan melakuakan penambahan data pada minggu ke 1 April 2020</li>
+            <li>Sebelum diproses kedalam tahap preprocessing menggunakan coding , dilakuakan pelabelan dan perubahan kata kata dalam sumber dalam sesuai dengan kbbi</li>
+            <li>Jumlah data adalah 7346, dengan komposisi 1000 kalimat berlabel positif dan 1000 kalimat berlabel negatif</li>
+        </ul>
+        """, unsafe_allow_html=True)
+        # def pilih_file(folder_path='./datamentah'):
+        #     namafile = os.listdir(folder_path)
+        #     fileterpilih = st.selectbox('Pilih Data set',namafile)
+        #     return os.path.join(folder_path, fileterpilih)
+        # data = pilih_file()
+        # st.write('You selected `%s`' % data)
+
+        dataTweet = pd.read_csv('./datamentah/DataTelkomsel.csv',usecols=["text","sentiment"], encoding = "latin-1")
+        st.markdown(
+        """
+        <h2 class="title">Data Awal</h2>
         """, unsafe_allow_html=True)
         
-        if st.checkbox('Data Awal | Menampilkan Semua Data',key=0):
-            st.write(dataTweet) 
+        if st.checkbox('Menampilkan Seluruh data, bentuk data, jumlah setiap label',key=0):
+            st.markdown(
+                """
+                <h3>Menampilkan Seluruh data</h3>
+                """, unsafe_allow_html=True)
+            st.dataframe(dataTweet)
+            st.markdown(
+                """
+                <h3>Menampilkan Bentuk Data</h3>
+                """, unsafe_allow_html=True) 
+            st.write(dataTweet.shape)
+            st.write("Jumlah baris ",dataTweet.shape[0] ," Jumlah kolom ", dataTweet.shape[1])
+            st.markdown(
+                """
+                <h3>Menampilkan Jumlah Data Berlabel Negatif dan Positif</h3>
+                """, unsafe_allow_html=True)
+            st.write(dataTweet['sentiment'].value_counts())
+            st.markdown(
+                """
+                <h3>Ringkasan Dataset</h3>
+                """, unsafe_allow_html=True)
+            st.write(dataTweet.describe())
     
 
         ################################## CASE FOLDING #######################################    
 
         st.markdown(
         """
-        <h2>Data Preprocessing | Case Folding</h2>
+        <h2 class="title">Data Preprocessing | Case Folding</h2>
         """, unsafe_allow_html=True)
-        st.text("Case Folding adalah merupakan bla bla bla")
         def casefolding(text):
             text = text.lower().strip()
             return text
@@ -108,9 +140,8 @@ def main():
         ################################## NOISE REMOVAL #######################################
         st.markdown(
         """
-        <h2>Data Preprocessing |Noise Removal</h2>
+        <h2 class="title">Data Preprocessing | Noise Removal</h2>
         """, unsafe_allow_html=True)
-        st.text("Case Folding adalah merupakan bla bla bla")
         def clean(text):
             text = re.sub(r'\n', '', text)
             #Menghapus username 
@@ -151,9 +182,8 @@ def main():
         ################################## Tokenizer #######################################
         st.markdown(
         """
-        <h2>Data Preprocessing | Tokenizer </h2>
+        <h2 class="title">Data Preprocessing | Tokenizer </h2>
         """, unsafe_allow_html=True)
-        st.text("Tokenizer adalah merupakan bla bla bla")
         def tokenizer(text):
             return text.split()
 
@@ -175,12 +205,11 @@ def main():
         ################################## StopWord Removal #######################################
         st.markdown(
         """
-        <h2>Data Preprocessing | Stopword Removal </h2>
+        <h2 class="title">Data Preprocessing | Stopword Removal </h2>
         """, unsafe_allow_html=True)
-        st.text("Stopword Removal adalah merupakan bla bla bla")
 
         def hapus_stopword(desc):
-            StopWords = "stpword.txt"
+            StopWords = "stopwordbaru.txt"
             sw=open(StopWords,encoding='utf-8', mode='r');stop=sw.readlines();sw.close()
             stop=[kata.strip() for kata in stop];stop=set(stop)
             kata = [item for item in desc if item not in stop]
@@ -203,18 +232,32 @@ def main():
     elif halaman == "Simulasi Word2vec":
         st.markdown(
         """
-        <h2>Feature Extraction - Word2vec</h1>
+        <h1 class="title">Feature Extraction - Word2vec</h1>
         """, unsafe_allow_html=True)
         st.text("Pada bagian ini akan dilakukan data preprocessing dari dataset yang anda berikan. Data preprocessing \nadalah suatu langkah yang dilakukan untuk membuat data mentah menjadi data yang siap digunakan \nuntuk proses selanjutnya. Preprocessing yang dilakukan pada aplikasi ini adalah mengambil \ndata yang memiliki nilai lebih dari nol.")
+        st.markdown(
+        """
+        <h2 class="title">Hyperparameter yang digunakan</h2>
+        <ul>
+            <li>Size : 100 (Dimensi Kata Vektor)</li>
+            <li>Window : 3 (jarak antara kata-kata konteks dengan posisi kata yang menjadi inputan)</li>
+            <li>Min_count : 1 (semua kata dengan frekuensi total lebih rendah dari nilai min_count)</li>
+            <li>Epoch : 100 (Melatih vektor kata dengan 100 epoch)</li>
+        </ul>
+        """, unsafe_allow_html=True)
 
         id_w2v = Word2Vec.load("hasilword2vec.w2v")
 
         dataTweet = pd.read_csv("word2vec.csv")
+        st.markdown(
+        """
+        <h2 class="title">Menampilkan vektor setiap kata</h1>
+        """, unsafe_allow_html=True)
         st.write(dataTweet)
 
         st.markdown(
         """
-        <h2>Simulasi Kemiripan antar kata dengan Word2vec</h1>
+        <h2 class="title">Simulasi Kemiripan antar kata dengan Word2vec</h1>
         """, unsafe_allow_html=True)
 
         word2vec = st.text_input('Masukan satu kata untuk mencari similarity',key=5)
@@ -223,8 +266,10 @@ def main():
             st.write(id_w2v[word2vec])
             # st.text("lima Kata yang paling mirip dengan : ",word2vec)
             st.write(id_w2v.wv.most_similar(word2vec, topn = 5))
-
-        st.text("Kemiripan antar dua kata")    
+        st.markdown(
+        """
+        <h2 class="title">Tingkat Kemiripan antar dua kata</h1>
+        """, unsafe_allow_html=True)   
         kata1 = st.text_input('kata1 : ',key=6)
         kata2 = st.text_input('kata2 : ',key=7)
         if st.button("Submit",key=1):
@@ -285,8 +330,7 @@ def main():
         loadh1()
 
     elif halaman == "Hasil Training":
-        st.header("This is Hasil Training")
-        st.write("Please select a page on the right.")
+        asdad
 
 if __name__ == "__main__":
     main()
