@@ -15,16 +15,21 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from IPython import get_ipython
 import numpy as np
+from nltk.tokenize import word_tokenize 
+import altair as alt
 # get_ipython().magic(u'matplotlib inline')
 
 def main():
     
-    halaman = st.sidebar.selectbox("MENU", ["Tentang", "Data Preprocessing","Simulasi Word2vec","Prediksi Kalimat","Hasil Training"])
+    halaman = st.sidebar.selectbox("MENU", ["Tentang", "Data Preprocessing","Simulasi Word2vec","Prediksi Kalimat","Dokumentasi Hasil Training"])
 
     def load_css(css_file):
         with open(css_file) as f:
             st.markdown('<style>{}</style>'.format(f.read()),unsafe_allow_html=True)
     load_css("gaya.css")
+    def load_images(image_name):
+        img = Image.open(image_name)
+        return st.image(img,width=300)
 
     if halaman == "Tentang":
         def loadpage():
@@ -146,6 +151,8 @@ def main():
             text = re.sub(r'\n', '', text)
             #Menghapus username 
             text = re.sub("(@[A-Za-z0-9]+)","",text)
+            text = re.sub("(@_[A-Za-z0-9]+)","",text)
+            text =  re.sub(r'\\x..', '', text)
             #Menghapus #
             text = re.sub("(#[A-Za-z0-9]+)","",text)
             text = re.sub("(\w+:\/\/\S+)","",text)
@@ -214,7 +221,6 @@ def main():
             stop=[kata.strip() for kata in stop];stop=set(stop)
             kata = [item for item in desc if item not in stop]
             return ' '.join(kata)
-
         hasilstopword = []
 
         for desc in tqdm(dataTweet['tokenizer']):
@@ -227,14 +233,18 @@ def main():
             st.write(dataTweet)
             st.text("Simulasi Data Preprocessing Stopword Removal")
             cobastopword = st.text_input('Masukan kalimat',key=4)
-            st.write('Hasil Stopword Removal : ',hapus_stopword(cobastopword))
+            word_tokens = word_tokenize(cobastopword)
+            stop_words = open('stopwordbaru.txt','r').read().split()
+            filtered_sentence = [w for w in word_tokens if not w in stop_words]
+            v = ' '.join(filtered_sentence) 
+            st.write('Hasil Stopword Removal : ',v)
 
     elif halaman == "Simulasi Word2vec":
         st.markdown(
         """
         <h1 class="title">Feature Extraction - Word2vec</h1>
         """, unsafe_allow_html=True)
-        st.text("Pada bagian ini akan dilakukan data preprocessing dari dataset yang anda berikan. Data preprocessing \nadalah suatu langkah yang dilakukan untuk membuat data mentah menjadi data yang siap digunakan \nuntuk proses selanjutnya. Preprocessing yang dilakukan pada aplikasi ini adalah mengambil \ndata yang memiliki nilai lebih dari nol.")
+        st.text("Lorem Ipsum is simply dummy text of the printing and typesetting industry. \nLorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.\nIt has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.\nIt was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.")
         st.markdown(
         """
         <h2 class="title">Hyperparameter yang digunakan</h2>
@@ -277,16 +287,13 @@ def main():
             st.write("Kata : " + kata1 + " dengan kata " + kata2 + " memiliki tingat kemiripan : " , id_w2v.wv.similarity(kata1,kata2))
     
     elif halaman == "Prediksi Kalimat":
-        st.header("This is Prediksi Kalimat.")
-        st.write("Please select a page on the right.")
-
+        st.markdown(
+        """
+        <h1 class="title">Prediksi Kalimat</h1>
+        """, unsafe_allow_html=True)
         model = load_model('Malam29AprilSatu7.h5',compile=False)
         with open('malam29april.pickle', 'rb') as handle:
             tokenizer = pickle.load(handle)
-        
-        def load_images(image_name):
-            img = Image.open(image_name)
-            return st.image(img,width=300)
         def load_css(css_file):
             with open(css_file) as f:
                 st.markdown('<style>{}</style>'.format(f.read()),unsafe_allow_html=True)
@@ -329,8 +336,230 @@ def main():
         load_css("gaya.css")
         loadh1()
 
-    elif halaman == "Hasil Training":
-        asdad
+    elif halaman == "Dokumentasi Hasil Training":
+        st.markdown(
+        """
+        <h1 class="title">Dokumentasi Hasil Training</h1>
+        """, unsafe_allow_html=True)
+        st.markdown(
+        """
+        <h2 class="title">Skema Pelatihan Data</h2>
+        <ul>
+            <li>Metode yang Digunakan adalah Long Short Term Memory</li>
+            <li>Data yang digunakan untuk proses training adalah 80% dan 20% dijadikan sebagain data testing</li>
+            <li>Menggunakan 10 Fold Cross Validation</li>
+            <li>Telah dilakukan beberapa kali pelatihan ,dan pada website ini aka ditampilkan hasil training yang digunakan</li>
+        </ul>
+        """, unsafe_allow_html=True)
+        if st.checkbox("Hasil Training"):
+            st.markdown(
+            """
+            <h3 class="title">Hyperparameter yang digunakan</h3>
+            <ul>
+                <li>LSTM Hidden State : 100</li>
+                <li>Dropout : 0.5</li>
+                <li>Fungsi Aktivasi : Sigmoid</li>
+                <li>Optimizer : Adama</li>
+                <li>Batch Size :128 </li>
+                <li>Epoch : 50</li>
+                <li>Hyperparameter Word2vec = Size : 100 , Window : 3, min_count : 1, workers : 4, epoch : 100</li>
+                <li>Lama Waktu Training : 45 menit</li>
+            </ul>
+            """, unsafe_allow_html=True)
+            st.markdown(
+            """
+            <h3 class="title">Skema 10 Fold Cross Validation</h3>
+            """, unsafe_allow_html=True)
+            if st.checkbox("Fold ke 1"):
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Training : 98 %</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                def load_image(image_name):
+                    img = Image.open(image_name)
+                    return st.image(img,width=600)
+                load_image('NewImage1.png')
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Testing : 98 % , F-1 Score : 97 %, Precission : 97% , Recall :97%</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                data = pd.DataFrame({'cm': ['True Positif', 'True  Negatif', 'False Positif','False Negatif'],'jumlah': [666, 656, 18, 22],})
+                st.subheader('Evaluasi Menggunakan Confusion Matrix')
+                st.write(data)
+                st.write(alt.Chart(data).mark_bar().encode(x=alt.X('cm', sort=None),y='jumlah',))
+            if st.checkbox("Fold ke 2"):
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Training : 98 %</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                def load_image(image_name):
+                    img = Image.open(image_name)
+                    return st.image(img,width=600)
+                load_image('NewImage1.png')
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Testing : 98 % , F-1 Score : 97 %, Precission : 97% , Recall :97%</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                data = pd.DataFrame({'cm': ['True Positif', 'True  Negatif', 'False Positif','False Negatif'],'jumlah': [666, 656, 18, 22],})
+                st.subheader('Evaluasi Menggunakan Confusion Matrix')
+                st.write(data)
+                st.write(alt.Chart(data).mark_bar().encode(x=alt.X('cm', sort=None),y='jumlah',))
+            if st.checkbox("Fold ke 3"):
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Training : 98 %</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                def load_image(image_name):
+                    img = Image.open(image_name)
+                    return st.image(img,width=600)
+                load_image('NewImage1.png')
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Testing : 98 % , F-1 Score : 97 %, Precission : 97% , Recall :97%</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                data = pd.DataFrame({'cm': ['True Positif', 'True  Negatif', 'False Positif','False Negatif'],'jumlah': [666, 656, 18, 22],})
+                st.subheader('Evaluasi Menggunakan Confusion Matrix')
+                st.write(data)
+                st.write(alt.Chart(data).mark_bar().encode(x=alt.X('cm', sort=None),y='jumlah',))
+            if st.checkbox("Fold ke 4"):
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Training : 98 %</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                def load_image(image_name):
+                    img = Image.open(image_name)
+                    return st.image(img,width=600)
+                load_image('NewImage1.png')
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Testing : 98 % , F-1 Score : 97 %, Precission : 97% , Recall :97%</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                data = pd.DataFrame({'cm': ['True Positif', 'True  Negatif', 'False Positif','False Negatif'],'jumlah': [666, 656, 18, 22],})
+                st.subheader('Evaluasi Menggunakan Confusion Matrix')
+                st.write(data)
+                st.write(alt.Chart(data).mark_bar().encode(x=alt.X('cm', sort=None),y='jumlah',))
+            if st.checkbox("Fold ke 5"):
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Training : 98 %</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                def load_image(image_name):
+                    img = Image.open(image_name)
+                    return st.image(img,width=600)
+                load_image('NewImage1.png')
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Testing : 98 % , F-1 Score : 97 %, Precission : 97% , Recall :97%</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                data = pd.DataFrame({'cm': ['True Positif', 'True  Negatif', 'False Positif','False Negatif'],'jumlah': [666, 656, 18, 22],})
+                st.subheader('Evaluasi Menggunakan Confusion Matrix')
+                st.write(data)
+                st.write(alt.Chart(data).mark_bar().encode(x=alt.X('cm', sort=None),y='jumlah',))
+            if st.checkbox("Fold ke 6"):
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Training : 98 %</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                def load_image(image_name):
+                    img = Image.open(image_name)
+                    return st.image(img,width=600)
+                load_image('NewImage1.png')
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Testing : 98 % , F-1 Score : 97 %, Precission : 97% , Recall :97%</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                data = pd.DataFrame({'cm': ['True Positif', 'True  Negatif', 'False Positif','False Negatif'],'jumlah': [666, 656, 18, 22],})
+                st.subheader('Evaluasi Menggunakan Confusion Matrix')
+                st.write(data)
+                st.write(alt.Chart(data).mark_bar().encode(x=alt.X('cm', sort=None),y='jumlah',))
+            if st.checkbox("Fold ke 7"):
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Training : 98 %</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                def load_image(image_name):
+                    img = Image.open(image_name)
+                    return st.image(img,width=600)
+                load_image('NewImage1.png')
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Testing : 98 % , F-1 Score : 97 %, Precission : 97% , Recall :97%</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                data = pd.DataFrame({'cm': ['True Positif', 'True  Negatif', 'False Positif','False Negatif'],'jumlah': [666, 656, 18, 22],})
+                st.subheader('Evaluasi Menggunakan Confusion Matrix')
+                st.write(data)
+                st.write(alt.Chart(data).mark_bar().encode(x=alt.X('cm', sort=None),y='jumlah',))
+            if st.checkbox("Fold ke 8"):
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Training : 98 %</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                def load_image(image_name):
+                    img = Image.open(image_name)
+                    return st.image(img,width=600)
+                load_image('NewImage1.png')
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Testing : 98 % , F-1 Score : 97 %, Precission : 97% , Recall :97%</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                data = pd.DataFrame({'cm': ['True Positif', 'True  Negatif', 'False Positif','False Negatif'],'jumlah': [666, 656, 18, 22],})
+                st.subheader('Evaluasi Menggunakan Confusion Matrix')
+                st.write(data)
+                st.write(alt.Chart(data).mark_bar().encode(x=alt.X('cm', sort=None),y='jumlah',))
+            if st.checkbox("Fold ke 10"):
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Training : 98 %</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                def load_image(image_name):
+                    img = Image.open(image_name)
+                    return st.image(img,width=600)
+                load_image('NewImage1.png')
+                st.markdown(
+                """
+                <ul>
+                    <li>Akurasi Testing : 98 % , F-1 Score : 97 %, Precission : 97% , Recall :97%</li>
+                </ul>
+                """, unsafe_allow_html=True)
+                data = pd.DataFrame({'cm': ['True Positif', 'True  Negatif', 'False Positif','False Negatif'],'jumlah': [666, 656, 18, 22],})
+                st.subheader('Evaluasi Menggunakan Confusion Matrix')
+                st.write(data)
+                st.write(alt.Chart(data).mark_bar().encode(x=alt.X('cm', sort=None),y='jumlah',))
 
+            
 if __name__ == "__main__":
     main()
